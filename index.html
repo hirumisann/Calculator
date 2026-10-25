@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0f1020" />
+<title>Kalkulator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, #1a1c3a 0%, #0f1020 100%);
+    overflow: hidden;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .calculator {
+    width: 100%;
+    max-width: 380px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .display {
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 18px;
+    padding: 22px 20px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    text-align: right;
+    overflow: hidden;
+  }
+  .history {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1rem;
+    font-weight: 400;
+    min-height: 20px;
+    word-break: break-all;
+    width: 100%;
+  }
+  .result {
+    color: #fff;
+    font-size: 2.6rem;
+    font-weight: 600;
+    line-height: 1.1;
+    margin-top: 6px;
+    word-break: break-all;
+    width: 100%;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  button {
+    border: none;
+    outline: none;
+    border-radius: 16px;
+    font-size: 1.35rem;
+    font-weight: 500;
+    padding: 18px 0;
+    cursor: pointer;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.07);
+    transition: transform 0.08s ease, background 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+  }
+  button:active {
+    transform: scale(0.94);
+  }
+  button:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .fn { background: rgba(255, 159, 67, 0.18); color: #ff9f43; }
+  .fn:hover { background: rgba(255, 159, 67, 0.28); }
+  .op { background: linear-gradient(135deg, #6c5ce7, #8e7bff); color: #fff; }
+  .op:hover { background: linear-gradient(135deg, #7d6cf0, #9d8dff); box-shadow: 0 6px 18px rgba(124, 108, 240, 0.4); }
+  .eq { background: linear-gradient(135deg, #00b894, #00d9a3); color: #fff; }
+  .eq:hover { background: linear-gradient(135deg, #00c9a0, #00e9b3); box-shadow: 0 6px 18px rgba(0, 200, 150, 0.4); }
+  .clear { background: rgba(255, 99, 99, 0.18); color: #ff6363; }
+  .clear:hover { background: rgba(255, 99, 99, 0.28); }
+
+  .span-2 { grid-column: span 2; }
+
+  /* Small screens */
+  @media (max-width: 360px) {
+    .calculator { padding: 18px; border-radius: 22px; }
+    .result { font-size: 2.2rem; }
+    button { font-size: 1.2rem; padding: 16px 0; }
+    .buttons { gap: 10px; }
+  }
+
+  /* Large screens / desktop */
+  @media (min-width: 768px) {
+    .calculator { max-width: 420px; padding: 28px; }
+    .result { font-size: 3rem; }
+    button { font-size: 1.5rem; padding: 22px 0; }
+    .buttons { gap: 14px; }
+  }
+
+  /* Landscape phone */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .calculator { max-width: 640px; flex-direction: row; align-items: stretch; }
+    .display { min-height: 140px; flex: 1; }
+    .buttons { flex: 1.6; gap: 8px; }
+    button { padding: 12px 0; font-size: 1.15rem; }
+    .result { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="calculator" role="application" aria-label="Kalkulator">
+    <div class="display">
+      <div class="history" id="history" aria-live="polite"></div>
+      <div class="result" id="result" aria-live="polite">0</div>
+    </div>
+
+    <div class="buttons">
+      <button class="clear" data-action="clear" aria-label="Hapus semua">AC</button>
+      <button class="fn" data-action="sign" aria-label="Positif negatif">+/−</button>
+      <button class="fn" data-action="percent" aria-label="Persen">%</button>
+      <button class="op" data-op="/" aria-label="Bagi">÷</button>
+
+      <button data-num="7">7</button>
+      <button data-num="8">8</button>
+      <button data-num="9">9</button>
+      <button class="op" data-op="*" aria-label="Kali">×</button>
+
+      <button data-num="4">4</button>
+      <button data-num="5">5</button>
+      <button data-num="6">6</button>
+      <button class="op" data-op="-" aria-label="Kurang">−</button>
+
+      <button data-num="1">1</button>
+      <button data-num="2">2</button>
+      <button data-num="3">3</button>
+      <button class="op" data-op="+" aria-label="Tambah">+</button>
+
+      <button class="span-2" data-num="0">0</button>
+      <button data-action="decimal" aria-label="Koma">.</button>
+      <button class="eq" data-action="equals" aria-label="Sama dengan">=</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const resultEl = document.getElementById('result');
+  const historyEl = document.getElementById('history');
+
+  let current = '0';        // angka yang sedang diketik
+  let previous = null;      // angka sebelumnya
+  let operator = null;      // operator aktif
+  let justEvaluated = false;// true setelah "=" ditekan
+
+  const opSymbol = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+  function render() {
+    // Tampilkan tanpa trailing zero pada desimal
+    let display = current;
+    if (display.length > 12) {
+      const num = parseFloat(display);
+      display = Math.abs(num) >= 1e12 || (Math.abs(num) < 1e-6 && num !== 0)
+        ? num.toExponential(6)
+        : parseFloat(num.toPrecision(12)).toString();
+    }
+    resultEl.textContent = display;
+    if (previous !== null && operator) {
+      historyEl.textContent = `${formatNum(previous)} ${opSymbol[operator]}`;
+    } else if (justEvaluated) {
+      // biarkan history menampilkan expression terakhir
+    } else {
+      historyEl.textContent = '';
+    }
+  }
+
+  function formatNum(n) {
+    const num = parseFloat(n);
+    if (!isFinite(num)) return 'Error';
+    return num.toString();
+  }
+
+  function inputNumber(num) {
+    if (justEvaluated) {
+      current = '0';
+      previous = null;
+      operator = null;
+      justEvaluated = false;
+      historyEl.textContent = '';
+    }
+    if (current === '0') {
+      current = num;
+    } else {
+      if (current.replace('-', '').length >= 15) return;
+      current += num;
+    }
+    render();
+  }
+
+  function inputDecimal() {
+    if (justEvaluated) {
+      current = '0.';
+      previous = null;
+      operator = null;
+      justEvaluated = false;
+      historyEl.textContent = '';
+      render();
+      return;
+    }
+    if (!current.includes('.')) {
+      current += '.';
+      render();
+    }
+  }
+
+  function chooseOperator(nextOp) {
+    if (current === 'Error') return;
+    if (operator && !justEvaluated && previous !== null) {
+      // hitung dulu operasi berjaina
+      const val = compute(previous, current, operator);
+      previous = val;
+      current = val;
+    } else {
+      previous = current;
+    }
+    operator = nextOp;
+    justEvaluated = false;
+    current = '0';
+    // tampilkan previous di result agar terlihat angka yang akan dioperasi
+    resultEl.textContent = formatNum(previous);
+    historyEl.textContent = `${formatNum(previous)} ${opSymbol[nextOp]}`;
+    current = previous; // agar render tetap menampilkan previous saat user belum mengetik
+    pendingNewInput = true;
+  }
+
+  let pendingNewInput = false;
+
+  function inputOperator(op) {
+    if (current === 'Error') return;
+    if (pendingNewInput && operator === op) return; // hindari double tap
+
+    if (operator && previous !== null && !pendingNewInput) {
+      const val = compute(previous, current, operator);
+      previous = val;
+      current = val;
+    } else {
+      previous = current;
+    }
+    operator = op;
+    pendingNewInput = true;
+    justEvaluated = false;
+    historyEl.textContent = `${formatNum(previous)} ${opSymbol[op]}`;
+    resultEl.textContent = formatNum(previous);
+  }
+
+  function compute(a, b, op) {
+    const x = parseFloat(a);
+    const y = parseFloat(b);
+    let r;
+    switch (op) {
+      case '+': r = x + y; break;
+      case '-': r = x - y; break;
+      case '*': r = x * y; break;
+      case '/':
+        if (y === 0) return 'Error';
+        r = x / y; break;
+      default: return b;
+    }
+    if (!isFinite(r)) return 'Error';
+    return parseFloat(r.toPrecision(12)).toString();
+  }
+
+  function evaluate() {
+    if (operator === null || previous === null) return;
+    const val = compute(previous, current, operator);
+    historyEl.textContent = `${formatNum(previous)} ${opSymbol[operator]} ${formatNum(current)} =`;
+    current = val;
+    previous = null;
+    operator = null;
+    justEvaluated = true;
+    pendingNewInput = false;
+    render();
+  }
+
+  function clearAll() {
+    current = '0';
+    previous = null;
+    operator = null;
+    justEvaluated = false;
+    pendingNewInput = false;
+    historyEl.textContent = '';
+    render();
+  }
+
+  function toggleSign() {
+    if (current === '0' || current === 'Error') return;
+    current = current.startsWith('-') ? current.slice(1) : '-' + current;
+    render();
+  }
+
+  function percent() {
+    if (current === 'Error') return;
+    const num = parseFloat(current);
+    let val;
+    if (previous !== null && operator) {
+      // persen relatif terhadap previous
+      val = (parseFloat(previous) * num) / 100;
+    } else {
+      val = num / 100;
+    }
+    current = parseFloat(val.toPrecision(12)).toString();
+    render();
+  }
+
+  // Event handler tombol
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.num !== undefined) {
+        if (pendingNewInput) {
+          current = '0';
+          pendingNewInput = false;
+        }
+        inputNumber(btn.dataset.num);
+      } else if (btn.dataset.op !== undefined) {
+        inputOperator(btn.dataset.op);
+      } else {
+        const action = btn.dataset.action;
+        switch (action) {
+          case 'clear': clearAll(); break;
+          case 'decimal':
+            if (pendingNewInput) {
+              current = '0.';
+              pendingNewInput = false;
+              render();
+            } else {
+              inputDecimal();
+            }
+            break;
+          case 'equals': evaluate(); break;
+          case 'sign': toggleSign(); break;
+          case 'percent': percent(); break;
+        }
+      }
+    });
+  });
+
+  // Dukungan keyboard
+  document.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (/[0-9]/.test(k)) {
+      if (pendingNewInput) { current = '0'; pendingNewInput = false; }
+      inputNumber(k);
+    } else if (k === '.' || k === ',') {
+      if (pendingNewInput) { current = '0.'; pendingNewInput = false; render(); }
+      else inputDecimal();
+    } else if (['+', '-', '*', '/'].includes(k)) {
+      e.preventDefault();
+      inputOperator(k);
+    } else if (k === 'Enter' || k === '=') {
+      e.preventDefault();
+      evaluate();
+    } else if (k === 'Escape' || k === 'c' || k === 'C') {
+      clearAll();
+    } else if (k === 'Backspace') {
+      if (justEvaluated) { clearAll(); return; }
+      if (pendingNewInput) return;
+      current = current.length > 1 ? current.slice(0, -1) : '0';
+      if (current === '-' || current === '') current = '0';
+      render();
+    } else if (k === '%') {
+      percent();
+    }
+  });
+
+  // Render awal
+  render();
+})();
+</script>
+</body>
+</html>
